@@ -1,53 +1,30 @@
-## The purpose of these functions is to cache in memory
-## the calculation for an inverse function since
-## inverse functions can be computationally expensive
-
-## This function creates an object in memory that stores
-## the inverse matrix that is calculated using the
-## solve function
-
-## m holds the value of the inverse matrix
-## x holds the original matrix
-
-makeCacheMatrix <- function(x = matrix()) {
-
-  m <- NULL
-  set <- function(y) {
-    x <<- y
-    m <<- NULL
+## This function creates a special matrix cache its inverse
+makeCacheMatrix <- function(x = matrix()) {  ## define the default mode of matrix
+  inv <- NULL                                ## initialize inv = NULL, hold matrix inverse
+  set <- function(y) {                       ## define set function
+    x <<- y                                  ## value of matrix in parent environment
+    inv <<- NULL                             ## if is a new matrix, reset inv
   }
-  get <- function() x
-  setsolve <- function(solve) m <<- solve
-  getsolve <- function() m
-  list(set = set, get = get,
-       setsolve = setsolve,
-       getsolve = getsolve)
+  get <- function() x                        ## define  get fucntion returns matrix 
   
+  setinverse <- function(inverse) inv <<- inverse ## assigns inv in parent environment
+  getinverse <- function() inv                    ## gets  value of inv  
+  
+  list(set = set, get = get, setinverse = setinverse, getinverse = getinverse) ## order to refer 
 }
 
-
-## This function uses lexical scoping to retrieve the
-## inverse matrix by passing in the object created by
-## makeCacheMatrix, the function() is called in the 
-## makeCacheMatrix which returns m if it has been initialized
-## if m has not been initialized, the function proceeds to call
-## the solve function in makeCacheMatrix which calls
-## the primative function solve for producing the inverse value.
-## this value is stored in m within the global environment.  When
-## cacheSolve is called a second time, it detects that m in the 
-## global environment has been set and retrieves m from the global environment.
-
+## computes the inverse of  matrix returned by makeCacheMatrix()
+## If inverse has  been calculated and the matrix has not changed,
+## then cacheSolve() will retrieve from the cache
 cacheSolve <- function(x, ...) {
-        ## Return a matrix that is the inverse of 'x'
-  
-  m <- x$getsolve()
-  if(!is.null(m)) {
-    message("getting cached data")
-    return(m)
+  ## Return a matrix that is the inverse of x
+  inv <- x$getinverse()
+  if(!is.null(inv)) {
+    message("get -> cached data")
+    return(inv)
   }
   data <- x$get()
-  m <- solve(data, ...)
-  x$setsolve(m)
-  m
-  
+  inv <- solve(data, ...)
+  x$setinverse(inv)
+  inv
 }
